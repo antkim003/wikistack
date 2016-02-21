@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h3>Content by {{user.name}}</h3>
+  <div class="container">
+    Email: {{user.email}}
+
+    <h4>List of Posts:</h4>
+    
+    <ul class="list-unstyled">
+      {% for page in pages %}
+        <li>{{ page | pageLink }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <hr/>
+{% endblock %}

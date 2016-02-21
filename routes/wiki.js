@@ -21,14 +21,45 @@ router.get('/search', function(req,res,next) {
   if (tag) {
     // search by the query in the database for the tags
     // and return json
-    console.log('there was a query', tag);
-    res.send('tag query submitted');
+    
+    Page.find({
+      tags: {$in: [tag]}
+    }).then(function(data){
+      
+      if (data.length > 0) {
+        console.log('heres what the data is',data);
+        res.render('results', {results: data, searchQuery: tag});
+      } else {
+        res.send('zero results');
+      }
+    });
+
   } else {
     // render the form here
     res.render('search'); 
   }
 
-  // res.render('search');
+});
+
+router.get('/similar/:urlTitle', function(req,res,next) {
+  // look for all that username
+  // look for all similar tags
+  // render page
+  var tags;
+  Page.findOne({
+    urlTitle : req.params.urlTitle
+  }).then(function(page) {
+    tags = page.tags
+    // console.log(tags);
+    return Page.find({
+      tags: {$in: tags},
+      _id: {$ne: page._id}
+    });
+  }).then(function(results) {
+    console.log('all the users with tag',results)
+    res.render('results', {results: results, searchQuery: "similar to: " + req.params.urlTitle})
+  });
+
 });
 
 // submit a new page to the database
@@ -41,6 +72,7 @@ router.post('/',function(req,res,next){
   var content = req.body.content;
   var status  = req.body.status;
   var tags    = req.body.tags;
+  var email   = req.body.email;
 
   tags = tags.split(' ');
 
@@ -51,10 +83,13 @@ router.post('/',function(req,res,next){
     tags: tags
   });
 
-
-  page.save().then(function(data){
-    console.log('successful db save: ', data);
-    res.redirect(data.route);
+  User.findOrCreate(req.body).then(function(user) {
+    console.log(user);
+    page.author = user._id;
+    return page.save();
+  }).then(function(savedPage){
+    console.log('successful db save: ', savedPage);
+    res.redirect(savedPage.route);
   }).catch(function(err) {
     console.log('there was an error: ', err);
   }).then(null, next);
@@ -65,35 +100,16 @@ router.get('/add',function(req,res,next){
 });
 
 router.get('/:urlTitle', function(req, res, next) {
+  var pageFound, userFound;
   Page.findOne({ urlTitle: req.params.urlTitle}).then(function(foundPage) {
     // convert tags to a string
-    var tags = foundPage.tags.join(' ');
-    res.render('wikipage',{page: foundPage, tags: tags});
+    var pageFound = foundPage;
+    return User.findOne({ _id: foundPage.author })
+    
+  }).then(function(foundUser) {
+    res.render('wikipage',{page: pageFound, user: foundUser});
   }).catch(next);
 });
 
-
-
-
-// get all users
-router.get('/users/',function(req,res,next) {
-  res.redirect('/wiki/');
-});
-// get specific user
-router.get('/users/:id',function(req,res,next) {
-
-});
-// create a user in the db
-router.post('/users/',function(req,res,next) {
-
-});
-// update user by id in the db
-router.put('/users/:id',function(req,res,next) {
-
-});
-// delete user id in the db
-router.delete('/users/:id',function(req,res,next) {
-
-});
 
 module.exports = router;

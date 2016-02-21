@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h2>By {{searchQuery}}</h2>
+{% for result in results %}
+  <div>
+    <h3>{{result.title}}</h3>
+    <h4>by <a href="{{result.route}}">{{result.title}}</a></h4>
+    <ul>
+      {% for tag in tags %}
+        <li>{{ tag | tagLink }}</li>
+      {% endfor %}
+    </ul>
+    <hr/>
+    <div>{{result.title}}</div>
+    <div class="page-body">{{result.content}}</div>
+  </div>
+
+  {% endfor %}
+{% endblock %}

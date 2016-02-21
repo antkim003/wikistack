@@ -29,6 +29,20 @@ pageSchema.virtual('route').get(function() {
   return '/wiki/' + this.urlTitle;
 });
 
+pageSchema.static('findByTag',function(tag, callback) {
+  return this.find({ tags: {$elemMatch: { $eq: tag } } }, callback);
+});
+
+userSchema.statics.findOrCreate = function (props) {
+  var self = this;
+  return self.findOne({email: props.email}).exec().then(function(user){
+    if (user) return user;
+    else return self.create({
+      email: props.email,
+      name:  props.name
+    });
+  });
+};
 
 var Page = mongoose.model('Page', pageSchema);
 var User = mongoose.model('User', userSchema);
@@ -45,6 +59,7 @@ function generateUrlTitle(title) {
   } 
   
 }
+
 
 pageSchema.pre('validate',function(next) {
   this.urlTitle = generateUrlTitle(this.title);

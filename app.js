@@ -31,6 +31,13 @@ app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 // to our wiki routes
 app.use('/wiki', require('./routes/wiki'));
 
+// to our users routes
+app.use('/users',require('./routes/user'));
+
+app.get('/', function(req, res, next) {
+  res.redirect('/wiki/');
+});
+
 app.listen(3000,function() {
   console.log('server running on 3000');
 });
